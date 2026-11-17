@@ -126,7 +126,7 @@
     </div>
 
     <!-- Login View -->
-    <div id="login-view" class="hidden flex-1 flex items-center justify-center bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');">
+    <div id="login-view" class="hidden flex-1 flex items-center justify-center bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1600&q=80');">
         <div class="absolute inset-0 bg-gov-blue bg-opacity-90"></div>
         
         <div class="relative z-10 glass-panel rounded-xl shadow-2xl p-8 w-full max-w-md mx-4 fade-in">
@@ -141,7 +141,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-user text-gray-400"></i></div>
-                        <input type="text" id="login-username" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gov-blue focus:border-gov-blue sm:text-sm" placeholder="Masukkan username">
+                        <input type="text" id="login-username" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gov-blue focus:border-gov-blue text-sm" placeholder="Masukkan username">
                     </div>
                 </div>
                 
@@ -149,11 +149,11 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-lock text-gray-400"></i></div>
-                        <input type="password" id="login-password" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gov-blue focus:border-gov-blue sm:text-sm" placeholder="Masukkan password">
+                        <input type="password" id="login-password" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gov-blue focus:border-gov-blue text-sm" placeholder="Masukkan password">
                     </div>
                 </div>
                 
-                <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-gov-blue hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue transition-colors duration-200 mt-2">
+                <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-gov-blue hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gov-blue">
                     MASUK SISTEM
                 </button>
             </form>
@@ -193,7 +193,7 @@
             
             <!-- Footer -->
             <div class="p-4 border-t border-blue-800 shrink-0">
-                <button onclick="window.logout()" class="flex items-center w-full px-4 py-2.5 text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-800 rounded-md transition-colors border border-transparent hover:border-blue-700">
+                <button onclick="window.logout()" class="flex items-center w-full px-4 py-2.5 text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-800 rounded-md transition-colors border border-blue-700 hover:border-blue-600">
                     <i class="fas fa-sign-out-alt mr-3"></i> Keluar Aplikasi
                 </button>
             </div>
@@ -211,7 +211,7 @@
                 </div>
                 
                 <div class="flex items-center space-x-3">
-                    <button onclick="window.startCameraScanner('details')" class="bg-blue-50 text-gov-blue border border-blue-200 px-3 py-1.5 rounded-md text-sm font-semibold hover:bg-gov-blue hover:text-white transition-all shadow-sm flex items-center">
+                    <button onclick="window.startCameraScanner('details')" class="bg-blue-50 text-gov-blue border border-blue-200 px-3 py-1.5 rounded-md text-sm font-semibold hover:bg-gov-blue hover:text-white transition-all shadow-sm">
                         <i class="fas fa-camera sm:mr-2"></i> <span class="hidden sm:inline">Scan Cepat</span>
                     </button>
                 </div>
@@ -234,16 +234,15 @@
            ========================================================================== */
         
         // --- MASUKKAN KREDENSIAL SUPABASE ANDA DI SINI ---
-        const SUPABASE_URL = 'https://blimhihjptvakbgrbbao.supabase.co'; // Ganti dengan URL project Anda
-        const SUPABASE_ANON_KEY = 'sb_publishable_0kdE_oPP51ftVu5KEazuqw_b2e4XSPI'; // Ganti dengan Anon Key project Anda
+        const SUPABASE_URL = 'https://blimhihjptvakbgrbbao.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_0kdE_oPP51ftVu5KEazuqw_b2e4XSPI';
         
         let supabaseClient;
         try {
-            // Memberikan URL dummy agar script tidak crash jika belum diganti
             const initUrl = SUPABASE_URL.startsWith('http') ? SUPABASE_URL : 'https://placeholder.supabase.co';
             supabaseClient = window.supabase.createClient(initUrl, SUPABASE_ANON_KEY);
         } catch (error) {
-            console.error("Gagal menginisialisasi Supabase:", error);
+            console.error('Gagal menginisialisasi Supabase:', error);
         }
 
         /* ==========================================================================
@@ -266,48 +265,39 @@
         /* ==========================================================================
            3. DATA FETCHING (ASYNC)
            ========================================================================== */
-           
+        
         async function fetchAllData() {
             try {
-                showLoading("Mengambil Data dari Supabase...");
+                showLoading('Mengambil Data dari Supabase...');
                 
-                // Fetch Users (if admin)
                 if (currentUserProfile && (currentUserProfile.role === 'super_admin' || currentUserProfile.role === 'admin')) {
                     const { data: users } = await supabaseClient.from('users').select('*');
                     usersData = users || [];
                 }
                 
-                // Fetch Books
                 const { data: books } = await supabaseClient.from('books').select('*').order('created_at', { ascending: false });
                 booksData = books || [];
 
-                // Fetch Members
                 const { data: members } = await supabaseClient.from('members').select('*').order('created_at', { ascending: false });
                 membersData = members || [];
 
-                // Fetch Procurements
                 const { data: procurements } = await supabaseClient.from('procurements').select(`*, books(judul)`).order('created_at', { ascending: false });
                 inventoryData = procurements || [];
 
-                // Fetch Transactions
                 const { data: transactions } = await supabaseClient.from('transactions').select(`*, books(judul), members(nama_lengkap)`).order('created_at', { ascending: false });
                 transactionsData = transactions || [];
                 
             } catch (error) {
-                console.error("Error fetching data:", error);
-                showToast("Gagal memuat data dari server.", "error");
+                console.error('Error fetching data:', error);
+                showToast('Gagal memuat data dari server.', 'error');
             } finally {
                 hideLoading();
             }
         }
 
-        /* ==========================================================================
-           4. AUTHENTICATION
-           ========================================================================== */
-
         async function initApp() {
-            if(SUPABASE_URL === 'YOUR_SUPABASE_URL' || !SUPABASE_URL.startsWith('http')) {
-                showToast("Silakan konfigurasi SUPABASE_URL & KEY di kode sumber.", "warning");
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || !SUPABASE_URL.startsWith('http')) {
+                showToast('Silakan konfigurasi SUPABASE_URL & KEY di kode sumber.', 'warning');
             }
 
             const storedSession = localStorage.getItem('siperpus_session');
@@ -325,7 +315,7 @@
             const usernameInput = document.getElementById('login-username').value.trim();
             const passwordInput = document.getElementById('login-password').value;
             
-            showLoading("Memverifikasi Kredensial...");
+            showLoading('Memverifikasi Kredensial...');
             
             try {
                 const { data, error } = await supabaseClient
@@ -341,21 +331,21 @@
                     document.getElementById('login-form').reset();
                     document.getElementById('login-view').classList.add('hidden');
                     
-                    showToast(`Selamat datang kembali, ${data.username}!`, "success");
+                    showToast(`Selamat datang kembali, ${data.username}!`, 'success');
                     await setupDashboard();
                 } else {
                     hideLoading();
-                    showToast("Username atau Password salah atau tidak ditemukan.", "error");
+                    showToast('Username atau Password salah atau tidak ditemukan.', 'error');
                 }
             } catch (error) {
                 hideLoading();
-                showToast("Terjadi kesalahan sistem/koneksi Supabase.", "error");
+                showToast('Terjadi kesalahan sistem/koneksi Supabase.', 'error');
                 console.error(error);
             }
         };
 
         window.logout = () => {
-            showLoading("Mengakhiri Sesi...");
+            showLoading('Mengakhiri Sesi...');
             localStorage.removeItem('siperpus_session');
             currentUserProfile = null;
             setTimeout(() => {
@@ -365,10 +355,6 @@
             }, 600);
         };
 
-        /* ==========================================================================
-           5. NAVIGATION & UI SETUP
-           ========================================================================== */
-           
         const menuConfig = [
             { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie', roles: ['super_admin', 'admin', 'petugas'] },
             { id: 'collections', label: 'Data Koleksi', icon: 'fa-book', roles: ['super_admin', 'admin', 'petugas'] },
@@ -398,13 +384,13 @@
             menuConfig.forEach(item => {
                 if (item.roles.includes(currentUserProfile.role)) {
                     const a = document.createElement('a');
-                    a.href = "#";
+                    a.href = '#';
                     a.className = `sidebar-link group flex items-center px-3 py-3 text-sm font-medium rounded-md text-blue-100 ${currentView === item.id ? 'active' : ''}`;
                     a.innerHTML = `<i class="fas ${item.icon} text-lg mr-3 w-6 text-center ${currentView === item.id ? 'text-white' : 'text-blue-300 group-hover:text-white'}"></i> ${item.label}`;
                     a.onclick = (e) => {
                         e.preventDefault();
                         navigateTo(item.id);
-                        if(window.innerWidth < 768) window.toggleSidebar(); // close on mobile
+                        if (window.innerWidth < 768) window.toggleSidebar();
                     };
                     nav.appendChild(a);
                 }
@@ -435,17 +421,12 @@
             else if (viewId === 'admin') container.innerHTML = buildAdminView();
         };
 
-        /* ==========================================================================
-           6. VIEW RENDERERS (HTML Generators)
-           ========================================================================== */
-
         function buildDashboardView() {
             const totalBooks = booksData.reduce((acc, curr) => acc + (parseInt(curr.stok) || 0), 0);
             const activeLoans = transactionsData.filter(t => t.status === 'Dipinjam').length;
             
             return `
                 <div class="fade-in space-y-6">
-                    <!-- Stats Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex items-center border-l-4 border-blue-500">
                             <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-4"><i class="fas fa-book text-xl"></i></div>
@@ -465,15 +446,13 @@
                         </div>
                     </div>
                     
-                    <!-- Welcome Card -->
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
                         <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none"><i class="fas fa-university text-9xl text-gov-blue"></i></div>
                         <div class="p-8 relative z-10">
                             <h3 class="text-2xl font-bold text-gov-blue mb-2">Selamat Datang di SIPERPUS</h3>
-                            <p class="text-gray-600 mb-6 max-w-2xl">Sistem Informasi Perpustakaan Terpadu. Kelola pendataan koleksi pustaka, keanggotaan, sirkulasi peminjaman, serta inventarisasi buku secara efisien dan profesional dengan sinkronisasi Cloud Database.</p>
-                            
+                            <p class="text-gray-600 mb-6 max-w-2xl">Sistem Informasi Perpustakaan Terpadu. Kelola pendataan koleksi pustaka, keanggotaan, sirkulasi peminjaman, serta inventarisasi buku secara efisien dan profesional.</p>
                             <div class="flex gap-4">
-                                <button onclick="window.navigateTo('circulation')" class="bg-gov-blue hover:bg-blue-800 text-white px-4 py-2 rounded shadow-sm text-sm font-medium transition"><i class="fas fa-plus mr-2"></i> Transaksi Baru</button>
+                                <button onclick="window.navigateTo('circulation')" class="bg-gov-blue hover:bg-blue-800 text-white px-4 py-2 rounded shadow-sm text-sm font-medium transition"><i class="fas fa-exchange-alt mr-2"></i> Transaksi Baru</button>
                                 <button onclick="window.startCameraScanner('details')" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded shadow-sm text-sm font-medium transition"><i class="fas fa-qrcode mr-2"></i> Scan Buku</button>
                             </div>
                         </div>
@@ -489,6 +468,8 @@
                     <td class="p-4 font-semibold text-gray-800 search-target">${escapeHTML(b.judul)}</td>
                     <td class="p-4 text-gray-600 search-target">${escapeHTML(b.pengarang)}</td>
                     <td class="p-4 text-sm text-gray-500">${escapeHTML(b.kategori)}</td>
+                    <td class="p-4 text-sm text-gray-600">${escapeHTML(b.katalog || '-')}</td>
+                    <td class="p-4 text-sm text-gray-600">${escapeHTML(b.nomor_rak || '-')}</td>
                     <td class="p-4 text-center font-bold ${b.stok > 0 ? 'text-green-600' : 'text-red-500'}">${b.stok}</td>
                     <td class="p-4 text-right space-x-1">
                         <button onclick="window.previewBarcode('${b.kode_barcode}', '${escapeHTML(b.judul)}')" title="Lihat Barcode" class="w-8 h-8 rounded bg-gray-100 text-gray-600 hover:bg-gray-200"><i class="fas fa-barcode"></i></button>
@@ -503,7 +484,7 @@
                     <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50 rounded-t-lg">
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                            <input type="text" onkeyup="window.filterTable('books-table', this.value)" placeholder="Cari barcode / judul / penulis..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gov-blue focus:border-gov-blue">
+                            <input type="text" onkeyup="window.filterTable('books-table', this.value)" placeholder="Cari barcode / judul / penulis..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-gov-blue focus:border-gov-blue">
                         </div>
                         <button onclick="window.showBookModal()" class="px-4 py-2 bg-gov-blue hover:bg-blue-800 text-white rounded-md text-sm font-medium shadow-sm w-full sm:w-auto"><i class="fas fa-plus mr-2"></i> Tambah Koleksi</button>
                     </div>
@@ -511,12 +492,17 @@
                         <table class="w-full text-left border-collapse whitespace-nowrap" id="books-table">
                             <thead>
                                 <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
-                                    <th class="p-4 font-semibold">Barcode/ID</th><th class="p-4 font-semibold">Judul Buku</th>
-                                    <th class="p-4 font-semibold">Penulis</th><th class="p-4 font-semibold">Kategori</th>
-                                    <th class="p-4 font-semibold text-center">Stok</th><th class="p-4 font-semibold text-right">Aksi</th>
+                                    <th class="p-4 font-semibold">Barcode/ID</th>
+                                    <th class="p-4 font-semibold">Judul Buku</th>
+                                    <th class="p-4 font-semibold">Penulis</th>
+                                    <th class="p-4 font-semibold">Kategori</th>
+                                    <th class="p-4 font-semibold">Katalog</th>
+                                    <th class="p-4 font-semibold">Nomor Rak</th>
+                                    <th class="p-4 font-semibold text-center">Stok</th>
+                                    <th class="p-4 font-semibold text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-sm divide-y divide-gray-100">${trs.length ? trs : '<tr><td colspan="6" class="p-8 text-center text-gray-500">Tidak ada data koleksi.</td></tr>'}</tbody>
+                            <tbody class="text-sm divide-y divide-gray-100">${trs.length ? trs : '<tr><td colspan="8" class="p-8 text-center text-gray-500">Tidak ada data koleksi.</td></tr>'}</tbody>
                         </table>
                     </div>
                 </div>`;
@@ -540,7 +526,7 @@
                     <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                            <input type="text" onkeyup="window.filterTable('members-table', this.value)" placeholder="Cari No Anggota / Nama..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gov-blue focus:border-gov-blue">
+                            <input type="text" onkeyup="window.filterTable('members-table', this.value)" placeholder="Cari No Anggota / Nama..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-gov-blue focus:border-gov-blue">
                         </div>
                         <button onclick="window.showMemberModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-user-plus mr-2"></i> Tambah Anggota</button>
                     </div>
@@ -572,7 +558,7 @@
                         </span>
                     </td>
                     <td class="p-4 text-right">
-                        ${isB ? `<button onclick="window.returnBook(${t.id}, ${t.book_id})" class="text-xs px-3 py-1.5 bg-gov-blue text-white rounded hover:bg-blue-800 shadow-sm font-medium">Kembalikan Buku</button>` : `<span class="text-gray-400 text-xs italic"><i class="fas fa-check"></i> Selesai</span>`}
+                        ${isB ? `<button onclick="window.returnBook(${t.id}, ${t.book_id})" class="text-xs px-3 py-1.5 bg-gov-blue text-white rounded hover:bg-blue-800 shadow-sm font-medium">Kembalikan</button>` : ''}
                     </td>
                 </tr>`;
             }).join('');
@@ -582,9 +568,9 @@
                     <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                            <input type="text" onkeyup="window.filterTable('trans-table', this.value)" placeholder="Cari nama peminjam / buku..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gov-blue focus:border-gov-blue">
+                            <input type="text" onkeyup="window.filterTable('trans-table', this.value)" placeholder="Cari nama peminjam / buku..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-gov-blue focus:border-gov-blue">
                         </div>
-                        <button onclick="window.showBorrowModal()" class="px-4 py-2 bg-gov-gold hover:bg-yellow-600 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-exchange-alt mr-2"></i> Peminjaman Baru</button>
+                        <button onclick="window.showBorrowModal()" class="px-4 py-2 bg-gov-gold hover:bg-yellow-600 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-exchange-alt mr-2"></i> Pinjam Buku</button>
                     </div>
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left border-collapse whitespace-nowrap" id="trans-table">
@@ -621,9 +607,9 @@
                     <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                            <input type="text" onkeyup="window.filterTable('inv-table', this.value)" placeholder="Cari buku / sumber..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-gov-blue focus:border-gov-blue">
+                            <input type="text" onkeyup="window.filterTable('inv-table', this.value)" placeholder="Cari buku / sumber..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-gov-blue focus:border-gov-blue">
                         </div>
-                        <button onclick="window.showInventoryModal()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-plus mr-2"></i> Catat Inventaris</button>
+                        <button onclick="window.showInventoryModal()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-plus mr-2"></i> Tambah Inventaris</button>
                     </div>
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left border-collapse whitespace-nowrap" id="inv-table">
@@ -641,7 +627,7 @@
         }
 
         function buildAdminView() {
-            if(currentUserProfile.role !== 'super_admin') return `
+            if (currentUserProfile.role !== 'super_admin') return `
                 <div class="fade-in p-8 text-center bg-white rounded-lg border border-red-200">
                     <i class="fas fa-lock text-5xl text-red-400 mb-4"></i>
                     <h3 class="text-xl font-bold text-red-600 mb-2">Akses Ditolak</h3>
@@ -669,7 +655,7 @@
                 <div class="fade-in bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-full min-h-[500px]">
                     <div class="p-4 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
                         <h3 class="font-semibold text-gray-800"><i class="fas fa-shield-alt text-gov-blue mr-2"></i> Manajemen Akun Sistem</h3>
-                        <button onclick="window.showUserModal()" class="px-4 py-2 bg-gov-blue hover:bg-blue-800 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-user-plus mr-2"></i> Tambah Pengguna</button>
+                        <button onclick="window.showUserModal()" class="px-4 py-2 bg-gov-blue hover:bg-blue-800 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-user-plus mr-2"></i> Tambah User</button>
                     </div>
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left border-collapse whitespace-nowrap">
@@ -685,19 +671,13 @@
                 </div>`;
         }
 
-
-        /* ==========================================================================
-           7. MODALS & ASYNC CRUD OPERATIONS (Supabase)
-           ========================================================================== */
-
         function formInput(id, label, value, type='text', opts='') {
-            return `<div><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label><input type="${type}" id="${id}" required value="${escapeHTML(value)}" ${opts} class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-gov-blue focus:border-gov-blue"></div>`;
+            return `<div><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label><input type="${type}" id="${id}" required value="${escapeHTML(value)}" ${opts} class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-2 focus:ring-gov-blue focus:border-gov-blue"></div>`;
         }
 
-        // --- BOOK CRUD ---
         window.showBookModal = (bookId = null) => {
             const isEdit = !!bookId;
-            const b = isEdit ? booksData.find(x => x.id === bookId) : { kode_barcode: Date.now().toString().slice(-10), judul: '', pengarang: '', penerbit: '', tahun_terbit: new Date().getFullYear(), kategori: 'Fiksi', stok: 1 };
+            const b = isEdit ? booksData.find(x => x.id === bookId) : { kode_barcode: Date.now().toString().slice(-10), judul: '', pengarang: '', penerbit: '', tahun_terbit: new Date().getFullYear(), stok: 1, kategori: 'Fiksi', katalog: '', nomor_rak: '' };
             const html = `
                 <form onsubmit="window.saveBook(event, ${bookId || 'null'})" class="space-y-4">
                     ${formInput('b-barcode', 'Barcode / ID Buku', b.kode_barcode, 'text', 'class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"')}
@@ -708,13 +688,17 @@
                         ${formInput('b-tahun', 'Tahun Terbit', b.tahun_terbit, 'number')}
                     </div>
                     <div class="grid grid-cols-2 gap-4">
-                        ${formInput('b-stok', 'Jumlah Stok', b.stok, 'number', 'min="0"')}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                             <select id="b-kategori" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-gov-blue focus:border-gov-blue">
                                 ${['Fiksi','Non-Fiksi','Referensi','Buku Teks','Jurnal'].map(c => `<option value="${c}" ${b.kategori===c?'selected':''}>${c}</option>`).join('')}
                             </select>
                         </div>
+                        ${formInput('b-katalog', 'Katalog', b.katalog || '')}
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        ${formInput('b-nomor-rak', 'Nomor Rak', b.nomor_rak || '')}
+                        ${formInput('b-stok', 'Jumlah Stok', b.stok, 'number', 'min="0"')}
                     </div>
                     <div class="mt-8 flex justify-end space-x-3 pt-4 border-t border-gray-100">
                         <button type="button" onclick="window.closeModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
@@ -727,16 +711,18 @@
         window.saveBook = async (e, id) => {
             e.preventDefault();
             const data = { 
-                kode_barcode: document.getElementById('b-barcode').value, 
-                judul: document.getElementById('b-judul').value, 
-                pengarang: document.getElementById('b-pengarang').value, 
-                penerbit: document.getElementById('b-penerbit').value, 
+                kode_barcode: document.getElementById('b-barcode').value.trim(), 
+                judul: document.getElementById('b-judul').value.trim(), 
+                pengarang: document.getElementById('b-pengarang').value.trim(), 
+                penerbit: document.getElementById('b-penerbit').value.trim(), 
                 tahun_terbit: parseInt(document.getElementById('b-tahun').value),
                 stok: parseInt(document.getElementById('b-stok').value), 
-                kategori: document.getElementById('b-kategori').value 
+                kategori: document.getElementById('b-kategori').value,
+                katalog: document.getElementById('b-katalog').value.trim(),
+                nomor_rak: document.getElementById('b-nomor-rak').value.trim() 
             };
             
-            showLoading("Menyimpan Data...");
+            showLoading('Menyimpan Data...');
             try {
                 if (id) {
                     const { error } = await supabaseClient.from('books').update(data).eq('id', id);
@@ -746,29 +732,28 @@
                     if (error) throw error;
                 }
                 await fetchAllData();
-                closeModal(); window.navigateTo(currentView); showToast("Data buku berhasil disimpan.", "success");
+                closeModal(); window.navigateTo(currentView); showToast('Data buku berhasil disimpan.', 'success');
             } catch (err) {
                 hideLoading();
-                showToast(err.message, "error");
+                showToast(err.message, 'error');
             }
         };
 
         window.deleteBook = async (id) => { 
-            if(confirm("Perhatian: Menghapus koleksi akan memengaruhi data yang terkait. Lanjutkan?")) { 
-                showLoading("Menghapus Data...");
+            if (confirm('Perhatian: Menghapus koleksi akan memengaruhi data yang terkait. Lanjutkan?')) { 
+                showLoading('Menghapus Data...');
                 try {
                     const { error } = await supabaseClient.from('books').delete().eq('id', id);
                     if (error) throw error;
                     await fetchAllData();
-                    window.navigateTo(currentView); showToast("Buku dihapus.", "success"); 
+                    window.navigateTo(currentView); showToast('Buku dihapus.', 'success'); 
                 } catch (err) {
                     hideLoading();
-                    showToast(err.message, "error");
+                    showToast(err.message, 'error');
                 }
             } 
         };
 
-        // --- MEMBER CRUD ---
         window.showMemberModal = (memberId = null) => {
             const isEdit = !!memberId;
             let m = isEdit ? membersData.find(x => x.id === memberId) : { nomor_anggota: '', nama_lengkap: '', tipe_anggota: 'Siswa' };
@@ -793,12 +778,12 @@
         window.saveMember = async (e, id) => {
             e.preventDefault();
             const data = { 
-                nomor_anggota: document.getElementById('m-nis').value, 
-                nama_lengkap: document.getElementById('m-name').value, 
+                nomor_anggota: document.getElementById('m-nis').value.trim(), 
+                nama_lengkap: document.getElementById('m-name').value.trim(), 
                 tipe_anggota: document.getElementById('m-type').value 
             };
 
-            showLoading("Menyimpan Data...");
+            showLoading('Menyimpan Data...');
             try {
                 if (id) {
                     const { error } = await supabaseClient.from('members').update(data).eq('id', id);
@@ -808,26 +793,25 @@
                     if (error) throw error;
                 }
                 await fetchAllData();
-                closeModal(); window.navigateTo(currentView); showToast("Anggota disimpan.", "success");
+                closeModal(); window.navigateTo(currentView); showToast('Anggota disimpan.', 'success');
             } catch (err) {
                 hideLoading();
-                showToast(err.message, "error");
+                showToast(err.message, 'error');
             }
         };
         
         window.deleteMember = async (id) => { 
-            if(confirm("Hapus anggota ini?")) { 
-                showLoading("Menghapus...");
+            if (confirm('Hapus anggota ini?')) { 
+                showLoading('Menghapus...');
                 try {
                     const { error } = await supabaseClient.from('members').delete().eq('id', id);
                     if (error) throw error;
                     await fetchAllData();
-                    window.navigateTo(currentView); showToast("Anggota dihapus", "success");
-                } catch(err) { hideLoading(); showToast(err.message, "error"); }
+                    window.navigateTo(currentView); showToast('Anggota dihapus', 'success');
+                } catch (err) { hideLoading(); showToast(err.message, 'error'); }
             } 
         };
 
-        // --- INVENTORY CRUD ---
         window.showInventoryModal = () => {
             const bookOpts = booksData.map(b => `<option value="${b.id}">${escapeHTML(b.judul)} (Barcode: ${b.kode_barcode})</option>`).join('');
             const html = `
@@ -875,40 +859,36 @@
                 jumlah: qty
             };
 
-            showLoading("Mencatat Inventaris...");
+            showLoading('Mencatat Inventaris...');
             try {
-                // Insert procurement
                 const { error: err1 } = await supabaseClient.from('procurements').insert([data]);
                 if (err1) throw err1;
 
-                // Update book stock
                 const book = booksData.find(b => b.id === bookId);
                 const { error: err2 } = await supabaseClient.from('books').update({ stok: book.stok + qty }).eq('id', bookId);
-                if(err2) throw err2;
+                if (err2) throw err2;
 
                 await fetchAllData();
-                closeModal(); window.navigateTo(currentView); showToast("Inventaris dicatat & stok bertambah.", "success");
+                closeModal(); window.navigateTo(currentView); showToast('Inventaris dicatat & stok bertambah.', 'success');
             } catch (err) {
-                hideLoading(); showToast(err.message, "error");
+                hideLoading(); showToast(err.message, 'error');
             }
         };
 
         window.deleteInventory = async (id) => { 
-            if(confirm("Hapus catatan inventaris? (Tidak akan mengurangi stok buku)")) { 
-                showLoading("Menghapus...");
+            if (confirm('Hapus catatan inventaris? (Tidak akan mengurangi stok buku)')) { 
+                showLoading('Menghapus...');
                 try {
                     const { error } = await supabaseClient.from('procurements').delete().eq('id', id);
                     if (error) throw error;
-                    await fetchAllData(); window.navigateTo(currentView); showToast("Dihapus.", "success");
-                } catch(err) { hideLoading(); showToast(err.message, "error"); }
+                    await fetchAllData(); window.navigateTo(currentView); showToast('Dihapus.', 'success');
+                } catch (err) { hideLoading(); showToast(err.message, 'error'); }
             } 
         };
 
-        // --- CIRCULATION CRUD ---
         window.showBorrowModal = (prefilledBarcode = '') => {
             const membersOpts = membersData.map(m => `<option value="${m.id}">${escapeHTML(m.nama_lengkap)} (${escapeHTML(m.nomor_anggota)})</option>`).join('');
-            const booksOpts = booksData.filter(b => b.stok > 0 || b.kode_barcode === prefilledBarcode).map(b => `<option value="${b.id}" ${b.kode_barcode === prefilledBarcode ? 'selected' : ''}>${escapeHTML(b.judul)} (Sisa: ${b.stok})</option>`).join('');
-            
+            const booksOpts = booksData.filter(b => b.stok > 0 || b.kode_barcode === prefilledBarcode).map(b => `<option value="${b.id}" ${b.kode_barcode === prefilledBarcode ? 'selected' : ''}>${escapeHTML(b.judul)} (${escapeHTML(b.kode_barcode)})</option>`).join('');
             const html = `
                 <form onsubmit="window.processBorrow(event)" class="space-y-5">
                     <div>
@@ -919,7 +899,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Buku yang Dipinjam</label>
                         <div class="flex gap-2">
                             <select id="t-bookId" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-gov-blue"><option value="" disabled selected>-- Pilih Buku --</option>${booksOpts}</select>
-                            <button type="button" onclick="window.startCameraScanner('borrow')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors"><i class="fas fa-qrcode"></i> Scan</button>
+                            <button type="button" onclick="window.startCameraScanner('borrow')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 px-3 py-2 rounded-md text-sm font-medium"><i class="fas fa-camera"></i></button>
                         </div>
                     </div>
                     <div class="mt-8 flex justify-end space-x-3 pt-4 border-t border-gray-100">
@@ -936,9 +916,8 @@
             const bookId = parseInt(document.getElementById('t-bookId').value);
             const book = booksData.find(b => b.id === bookId);
 
-            if (!book || book.stok <= 0) return showToast("Stok buku habis atau buku tidak valid.", "error");
+            if (!book || book.stok <= 0) return showToast('Stok buku habis atau buku tidak valid.', 'error');
 
-            // Calculate return date (+7 days)
             const today = new Date();
             const returnDate = new Date(today);
             returnDate.setDate(returnDate.getDate() + 7);
@@ -952,7 +931,7 @@
                 status: 'Dipinjam'
             };
 
-            showLoading("Memproses Peminjaman...");
+            showLoading('Memproses Peminjaman...');
             try {
                 const { error: err1 } = await supabaseClient.from('transactions').insert([data]);
                 if (err1) throw err1;
@@ -961,16 +940,16 @@
                 if (err2) throw err2;
 
                 await fetchAllData();
-                showToast("Transaksi berhasil.", "success"); closeModal(); window.navigateTo(currentView);
+                showToast('Transaksi berhasil.', 'success'); closeModal(); window.navigateTo(currentView);
             } catch (err) {
-                hideLoading(); showToast(err.message, "error");
+                hideLoading(); showToast(err.message, 'error');
             }
         };
 
         window.returnBook = async (transId, bookId) => {
-            if(!confirm("Proses pengembalian buku ini?")) return;
+            if (!confirm('Proses pengembalian buku ini?')) return;
             
-            showLoading("Memproses Pengembalian...");
+            showLoading('Memproses Pengembalian...');
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
                 const { error: err1 } = await supabaseClient.from('transactions').update({ status: 'Dikembalikan', tanggal_dikembalikan: todayStr }).eq('id', transId);
@@ -981,11 +960,10 @@
                 if (err2) throw err2;
 
                 await fetchAllData();
-                showToast("Buku dikembalikan.", "success"); window.navigateTo(currentView);
-            } catch(err) { hideLoading(); showToast(err.message, "error"); }
+                showToast('Buku dikembalikan.', 'success'); window.navigateTo(currentView);
+            } catch (err) { hideLoading(); showToast(err.message, 'error'); }
         };
 
-        // --- USER CRUD (SUPERADMIN) ---
         window.showUserModal = () => {
             const html = `
                 <form onsubmit="window.saveUser(event)" class="space-y-4">
@@ -1000,231 +978,146 @@
                         </select>
                     </div>
                     <div class="mt-8 flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                        <button type="button" onclick="window.closeModal()" class="px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium shadow-sm hover:bg-blue-800">Simpan Akun</button>
+                        <button type="button" onclick="window.closeModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-gov-blue text-white rounded-md text-sm font-medium shadow-sm hover:bg-blue-800">Simpan User</button>
                     </div>
                 </form>`;
-            openModal('Buat Akun Sistem Baru', html);
+            openModal('Tambah Pengguna Baru', html);
         };
-        
+
         window.saveUser = async (e) => {
             e.preventDefault();
-            const u = document.getElementById('u-username').value.trim();
-            const p = document.getElementById('u-password').value;
-            const r = document.getElementById('u-role').value;
-            
-            showLoading("Membuat Akun...");
+            const username = document.getElementById('u-username').value.trim();
+            const password = document.getElementById('u-password').value;
+            const role = document.getElementById('u-role').value;
+
+            if (!username || !password) return showToast('Username dan password wajib diisi.', 'error');
+
+            showLoading('Menyimpan User...');
             try {
-                const { error } = await supabaseClient.from('users').insert([{ username: u, password: p, role: r }]);
+                const { error } = await supabaseClient.from('users').insert([{ username, password, role }]);
                 if (error) throw error;
-                await fetchAllData(); closeModal(); window.navigateTo(currentView); showToast("Akun berhasil dibuat.", "success");
-            } catch (err) { hideLoading(); showToast(err.message, "error"); }
+                await fetchAllData();
+                closeModal(); window.navigateTo('admin'); showToast('User berhasil ditambahkan.', 'success');
+            } catch (err) {
+                hideLoading(); showToast(err.message, 'error');
+            }
         };
 
-        window.updateUserRole = async (uid, role) => { 
-            showLoading("Mengupdate hak akses...");
+        window.updateUserRole = async (userId, newRole) => {
             try {
-                const { error } = await supabaseClient.from('users').update({role: role}).eq('id', uid);
+                const { error } = await supabaseClient.from('users').update({ role: newRole }).eq('id', userId);
                 if (error) throw error;
-                await fetchAllData(); showToast("Hak akses diperbarui.", "success");
-            } catch(err) { hideLoading(); showToast(err.message, "error"); }
+                await fetchAllData();
+                window.navigateTo('admin');
+                showToast('Peran user berhasil diubah.', 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         };
 
-        window.deleteUser = async (uid) => { 
-            if(confirm("Hapus akun sistem ini secara permanen?")){ 
-                showLoading("Menghapus akun...");
-                try {
-                    const { error } = await supabaseClient.from('users').delete().eq('id', uid);
-                    if(error) throw error;
-                    await fetchAllData(); window.navigateTo(currentView);
-                } catch(err) { hideLoading(); showToast(err.message, "error"); }
-            } 
+        window.deleteUser = async (userId) => {
+            if (currentUserProfile.id === userId) return showToast('Anda tidak dapat menghapus akun sendiri.', 'warning');
+            if (!confirm('Hapus user ini?')) return;
+
+            showLoading('Menghapus User...');
+            try {
+                const { error } = await supabaseClient.from('users').delete().eq('id', userId);
+                if (error) throw error;
+                await fetchAllData();
+                window.navigateTo('admin'); showToast('User berhasil dihapus.', 'success');
+            } catch (err) {
+                hideLoading(); showToast(err.message, 'error');
+            }
         };
 
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-        /* ==========================================================================
-           8. BARCODE SCANNING & PRINTING
-           ========================================================================== */
+        function formatDateShort(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+        }
 
-        window.previewBarcode = (barcodeStr, title) => {
-            const html = `
-                <div class="text-center">
-                    <p class="font-bold text-gray-800 mb-4">${escapeHTML(title)}</p>
-                    <div class="bg-white p-4 border rounded inline-block"><svg id="barcode-canvas"></svg></div>
-                    <div class="mt-6 flex space-x-3 justify-center">
-                        <button onclick="window.closeModal()" class="px-4 py-2 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">Tutup</button>
-                        <button onclick="window.printBarcode('${barcodeStr}', '${escapeHTML(title)}')" class="px-4 py-2 bg-gov-blue text-white rounded text-sm font-medium shadow-sm hover:bg-blue-800"><i class="fas fa-print mr-2"></i> Cetak Label</button>
-                    </div>
-                </div>`;
-            openModal('Label Barcode Buku', html);
-            setTimeout(() => JsBarcode("#barcode-canvas", barcodeStr, { format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 14 }), 100);
-        };
+        function filterTable(tableId, keyword) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const query = keyword.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
 
-        window.printBarcode = (barcodeStr, title) => {
-            document.getElementById('print-area').classList.remove('hidden');
-            document.getElementById('print-title').innerText = title;
-            JsBarcode("#print-barcode", barcodeStr, { format: "CODE128", width: 3, height: 100, displayValue: true, fontSize: 18 });
-            window.print();
-            document.getElementById('print-area').classList.add('hidden');
-        };
-
-        window.startCameraScanner = (mode = 'details') => {
-            window.currentScannerMode = mode;
-            const html = `
-                <div class="flex flex-col items-center justify-center">
-                    <p class="mb-4 text-sm text-gray-600 text-center font-medium bg-blue-50 p-3 rounded-lg border border-blue-100 w-full"><i class="fas fa-info-circle text-blue-500 mr-2"></i>Arahkan kamera ke barcode buku perpustakaan.</p>
-                    <div id="reader" class="w-full max-w-sm rounded overflow-hidden border border-gray-300 shadow-inner bg-black"></div>
-                    <button onclick="window.stopCameraScanner()" class="mt-6 px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 rounded-md text-sm font-medium w-full max-w-[200px] transition"><i class="fas fa-times mr-2"></i> Batalkan</button>
-                </div>`;
-            openModal('<i class="fas fa-camera mr-2"></i> Pemindai Barcode (Kamera)', html);
+        function openModal(title, html) {
+            document.getElementById('modal-title').innerHTML = title;
+            document.getElementById('modal-body').innerHTML = html;
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('hidden');
             setTimeout(() => {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 100}, aspectRatio: 1.0 }, false);
-                html5QrcodeScanner.render(onScanSuccess, () => {});
-            }, 200);
+                modal.classList.remove('opacity-0');
+                modal.querySelector('#modal-content').classList.remove('scale-95');
+            }, 50);
+        }
+
+        window.closeModal = () => {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('#modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 250);
         };
 
-        function onScanSuccess(decodedText) {
-            window.stopCameraScanner();
-            if(window.currentScannerMode === 'borrow') {
-                setTimeout(() => window.showBorrowModal(decodedText), 400);
+        function showLoading(message = 'Memuat...') {
+            const overlay = document.getElementById('loading-overlay');
+            const text = document.getElementById('loading-text');
+            if (text) text.textContent = message;
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            toast.className = `text-white px-4 py-2 rounded-md shadow-lg text-sm font-medium ${colors[type] || colors.info}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 2500);
+        }
+
+        window.toggleSidebar = () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
             } else {
-                setTimeout(() => window.showBookDetails(decodedText), 400);
-            }
-        }
-
-        window.stopCameraScanner = () => {
-            if(html5QrcodeScanner) { 
-                try { html5QrcodeScanner.clear(); } catch(e){} 
-                html5QrcodeScanner = null; 
-            }
-            closeModal();
-        };
-
-        window.showBookDetails = (barcodeStr) => {
-            const book = booksData.find(b => b.kode_barcode === barcodeStr);
-            if(!book) return showToast(`Buku dengan Barcode ${barcodeStr} tidak ditemukan!`, "error");
-            
-            // Mengambil Asal/Sumber dari Data Pengadaan (Inventaris)
-            const inv = inventoryData.find(i => i.book_id === book.id);
-            const sumberAsal = inv ? inv.sumber_asal : 'Belum Terdata';
-            
-            const html = `
-                <div class="bg-white text-center">
-                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-book-open text-2xl"></i></div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-1">${escapeHTML(book.judul)}</h2>
-                    <p class="text-sm font-mono text-gray-500 mb-5 bg-gray-100 inline-block px-3 py-1 rounded"><i class="fas fa-barcode"></i> ${escapeHTML(book.kode_barcode)}</p>
-                    
-                    <div class="grid grid-cols-2 gap-3 text-left mb-6">
-                        <div class="bg-gray-50 p-3 rounded border border-gray-100"><p class="text-xs text-gray-500">Penulis</p><p class="text-sm font-semibold text-gray-800">${escapeHTML(book.pengarang)}</p></div>
-                        <div class="bg-gray-50 p-3 rounded border border-gray-100"><p class="text-xs text-gray-500">Kategori</p><p class="text-sm font-semibold text-gray-800">${escapeHTML(book.kategori)}</p></div>
-                        <div class="bg-gray-50 p-3 rounded border border-gray-100"><p class="text-xs text-gray-500">Tahun</p><p class="text-sm font-semibold text-gray-800">${escapeHTML(book.tahun_terbit || '-')}</p></div>
-                        <div class="bg-gray-50 p-3 rounded border border-gray-100"><p class="text-xs text-gray-500">Asal / Sumber</p><p class="text-sm font-semibold text-gray-800">${escapeHTML(sumberAsal)}</p></div>
-                        <div class="bg-blue-50 p-3 rounded border border-blue-100 col-span-2 flex justify-between items-center"><p class="text-sm font-semibold text-blue-600">Sisa Stok Tersedia:</p><p class="text-xl font-bold text-blue-800">${book.stok} Eks</p></div>
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <button onclick="window.closeModal()" class="flex-1 py-2 bg-gray-100 border border-gray-300 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-700">Tutup</button>
-                        ${book.stok > 0 ? `<button onclick="window.closeModal(); setTimeout(()=>window.showBorrowModal('${book.kode_barcode}'), 300);" class="flex-1 py-2 bg-gov-blue hover:bg-blue-800 text-white rounded-md text-sm font-medium shadow-sm"><i class="fas fa-exchange-alt mr-2"></i> Pinjamkan</button>` : ''}
-                    </div>
-                </div>`;
-            openModal('Informasi Detail Buku', html);
-        };
-
-        // Listen for Physical Barcode Scanner
-        document.addEventListener('keypress', function(e) {
-            if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return; 
-            if (e.key === 'Enter' && physicalBarcode.length > 3) {
-                if(window.currentScannerMode === 'borrow' && !document.getElementById('custom-modal').classList.contains('hidden') && document.getElementById('t-bookId')) {
-                    const select = document.getElementById('t-bookId');
-                    // Find option where text matches barcode
-                    const b = booksData.find(x => x.kode_barcode === physicalBarcode);
-                    if(b && [...select.options].some(o => o.value == b.id)) {
-                        select.value = b.id;
-                        showToast("Barcode terdeteksi", "success");
-                    } else {
-                        showToast("Buku tidak valid/stok habis", "error");
-                    }
-                } else {
-                    window.showBookDetails(physicalBarcode);
-                }
-                physicalBarcode = '';
-            } else {
-                physicalBarcode += e.key;
-                if(physicalBarcodeTimer) clearTimeout(physicalBarcodeTimer);
-                physicalBarcodeTimer = setTimeout(() => physicalBarcode = '', 100);
-            }
-        });
-
-
-        /* ==========================================================================
-           9. UTILITIES
-           ========================================================================== */
-
-        window.toggleSidebar = () => { 
-            document.getElementById('sidebar').classList.toggle('-translate-x-full'); 
-            document.getElementById('sidebar-overlay').classList.toggle('hidden'); 
-        };
-        
-        window.openModal = (titleHTML, contentHTML) => { 
-            if(html5QrcodeScanner && !contentHTML.includes('reader')) window.stopCameraScanner(); 
-            document.getElementById('modal-title').innerHTML = titleHTML; 
-            document.getElementById('modal-body').innerHTML = contentHTML; 
-            const m = document.getElementById('custom-modal'); 
-            m.classList.remove('hidden'); 
-            void m.offsetWidth; 
-            m.classList.remove('opacity-0'); 
-            document.getElementById('modal-content').classList.remove('scale-95'); 
-        };
-        
-        window.closeModal = () => { 
-            if(html5QrcodeScanner) window.stopCameraScanner();
-            const m = document.getElementById('custom-modal'); 
-            m.classList.add('opacity-0'); 
-            document.getElementById('modal-content').classList.add('scale-95'); 
-            setTimeout(() => { m.classList.add('hidden'); document.getElementById('modal-body').innerHTML = ''; }, 300); 
-        };
-        
-        function showLoading(text = 'Memuat...') { 
-            const l = document.getElementById('loading-overlay'); 
-            document.getElementById('loading-text').innerText = text; 
-            l.classList.remove('opacity-0', 'pointer-events-none', 'hidden'); 
-        }
-        
-        function hideLoading() { 
-            const l = document.getElementById('loading-overlay'); 
-            l.classList.add('opacity-0', 'pointer-events-none'); 
-            setTimeout(() => l.classList.add('hidden'), 500); 
-        }
-        
-        window.showToast = (msg, type='info') => {
-            const c = document.getElementById('toast-container'); 
-            const t = document.createElement('div');
-            let bg = type==='success'?'bg-green-600':(type==='error'?'bg-red-600':(type==='warning'?'bg-yellow-500':'bg-blue-600'));
-            let icon = type==='success'?'fa-check-circle':(type==='error'?'fa-times-circle':'fa-info-circle');
-            t.className = `px-4 py-3 rounded shadow-xl text-white text-sm font-medium ${bg} transform transition-all duration-300 translate-x-[120%] flex items-center border border-white/20`;
-            t.innerHTML = `<i class="fas ${icon} mr-2 text-lg"></i> ${msg}`;
-            c.appendChild(t); 
-            setTimeout(() => t.classList.remove('translate-x-[120%]'), 10);
-            setTimeout(() => { t.classList.add('translate-x-[120%]'); setTimeout(() => t.remove(), 300); }, 3000);
-        };
-        
-        window.filterTable = (tableId, query) => {
-            const table = document.getElementById(tableId); if(!table) return; 
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-            for(let i=0; i<rows.length; i++) {
-                if(rows[i].cells.length===1) continue; 
-                let match = false; 
-                const targets = rows[i].getElementsByClassName('search-target');
-                for(let j=0; j<targets.length; j++) if(targets[j].innerText.toLowerCase().includes(query.toLowerCase())) match = true;
-                rows[i].style.display = match ? '' : 'none';
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
         };
-        
-        function escapeHTML(s) { return String(s||'').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t] || t)); }
-        function formatDateShort(s) { return s ? new Date(s).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-'; }
 
-        // Start App
-        document.addEventListener('DOMContentLoaded', initApp);
+        initApp();
     </script>
 </body>
 </html>
