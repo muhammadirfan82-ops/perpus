@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katalog & Lokasi Rak - SIPERPUS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    @media print {
+      body * { visibility: hidden !important; }
+      #print-area, #print-area * { visibility: visible !important; }
+      #print-area { display: grid !important; position: absolute; inset: 0; padding: 10mm; gap: 5mm; grid-template-columns: repeat(2, 1fr); align-content: start; }
+      .rack-label { border: 1px solid #111; break-inside: avoid; padding: 10mm; min-height: 45mm; text-align: center; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+  <header class="bg-blue-900 text-white shadow">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
+      <div><h1 class="text-xl font-bold"><i class="fa-solid fa-book-open mr-2 text-amber-400"></i>Katalog SIPERPUS</h1><p class="text-sm text-blue-200">Pencarian koleksi dan lokasi rak</p></div>
+      <a href="index.html" class="rounded bg-white/10 px-3 py-2 text-sm hover:bg-white/20"><i class="fa-solid fa-arrow-left mr-1"></i> Aplikasi</a>
+    </div>
+  </header>
+  <main class="mx-auto max-w-7xl space-y-5 px-4 py-6">
+    <section class="rounded-lg bg-white p-4 shadow-sm">
+      <div class="grid gap-3 md:grid-cols-4">
+        <label class="md:col-span-2"><span class="mb-1 block text-xs font-semibold uppercase text-slate-500">Cari koleksi</span><input id="search" class="w-full rounded border border-slate-300 px-3 py-2" placeholder="Judul, penulis, barcode, katalog, nomor rak"></label>
+        <label><span class="mb-1 block text-xs font-semibold uppercase text-slate-500">Katalog / kategori</span><select id="catalog-filter" class="w-full rounded border border-slate-300 px-3 py-2"><option value="">Semua katalog</option></select></label>
+        <label><span class="mb-1 block text-xs font-semibold uppercase text-slate-500">Nomor rak</span><select id="shelf-filter" class="w-full rounded border border-slate-300 px-3 py-2"><option value="">Semua rak</option></select></label>
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button id="refresh" class="rounded bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"><i class="fa-solid fa-rotate mr-1"></i>Muat ulang</button>
+        <button id="export-csv" class="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600"><i class="fa-solid fa-file-csv mr-1"></i>Ekspor CSV</button>
+        <button id="print-labels" class="rounded bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"><i class="fa-solid fa-print mr-1"></i>Cetak label rak / Simpan PDF</button>
+        <span id="result-count" class="ml-auto self-center text-sm text-slate-500"></span>
+      </div>
+    </section>
+    <section class="overflow-hidden rounded-lg bg-white shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead class="bg-slate-200 text-xs uppercase text-slate-600"><tr>
+            <th class="p-3">Barcode</th><th class="p-3">Judul buku</th><th class="p-3">Penulis</th><th class="p-3">Kategori</th><th class="p-3">Katalog</th><th class="p-3">Nomor rak</th><th class="p-3 text-center">Stok</th>
+          </tr></thead>
+          <tbody id="books-body"><tr><td colspan="7" class="p-8 text-center text-slate-500">Memuat data katalog…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <p id="status" class="text-sm text-slate-500" role="status"></p>
+  </main>
+  <div id="print-area" class="hidden"></div>
+  <script>
+    // Gunakan URL dan publishable/anon key Supabase project SIPERPUS.
+    const SUPABASE_URL = 'https://blimhihjptvakbgrbbao.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_0kdE_oPP51ftVu5KEazuqw_b2e4XSPI';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let books = [];
+    const byId = id => document.getElementById(id);
+    const safe = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    async function loadBooks() {
+      byId('status').textContent = 'Mengambil data dari Supabase…';
+      const { data, error } = await supabaseClient.from('books').select('id,kode_barcode,judul,pengarang,kategori,katalog,nomor_rak,stok').order('judul');
+      if (error) {
+        byId('books-body').innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-600">Tidak dapat memuat koleksi: ${safe(error.message)}. Pastikan kolom katalog dan nomor_rak sudah dibuat di database.</td></tr>`;
+        byId('status').textContent = 'Periksa koneksi, kebijakan akses Supabase, dan migrasi SQL.';
+        return;
+      }
+      books = data || [];
+      updateFilterOptions();
+      render();
+      byId('status').textContent = '';
+    }
+    function updateFilterOptions() {
+      const setOptions = (id, values, placeholder) => {
+        const select = byId(id), selected = select.value;
+        const unique = [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'id'));
+        select.innerHTML = `<option value="">${placeholder}</option>` + unique.map(v => `<option value="${safe(v)}">${safe(v)}</option>`).join('');
+        if (unique.includes(selected)) select.value = selected;
+      };
+      setOptions('catalog-filter', books.map(b => b.katalog || b.kategori), 'Semua katalog');
+      setOptions('shelf-filter', books.map(b => b.nomor_rak), 'Semua rak');
+    }
+    function filteredBooks() {
+      const query = byId('search').value.trim().toLocaleLowerCase('id');
+      const catalog = byId('catalog-filter').value;
+      const shelf = byId('shelf-filter').value;
+      return books.filter(b => {
+        const searchText = [b.kode_barcode,b.judul,b.pengarang,b.kategori,b.katalog,b.nomor_rak].join(' ').toLocaleLowerCase('id');
+        const catalogValue = b.katalog || b.kategori || '';
+        return (!query || searchText.includes(query)) && (!catalog || catalogValue === catalog) && (!shelf || (b.nomor_rak || '') === shelf);
+      });
+    }
+    function render() {
+      const list = filteredBooks();
+      byId('result-count').textContent = `${list.length} dari ${books.length} koleksi`;
+      byId('books-body').innerHTML = list.length ? list.map(b => `<tr class="border-t hover:bg-blue-50">
+        <td class="whitespace-nowrap p-3 font-mono text-xs">${safe(b.kode_barcode || '-')}</td><td class="min-w-52 p-3 font-semibold">${safe(b.judul || '-')}</td>
+        <td class="p-3">${safe(b.pengarang || '-')}</td><td class="p-3">${safe(b.kategori || '-')}</td><td class="p-3">${safe(b.katalog || '-')}</td>
+        <td class="p-3"><span class="rounded bg-blue-50 px-2 py-1 font-mono font-semibold text-blue-900">${safe(b.nomor_rak || 'Belum ditentukan')}</span></td><td class="p-3 text-center font-bold">${safe(b.stok ?? 0)}</td></tr>`).join('') : '<tr><td colspan="7" class="p-8 text-center text-slate-500">Tidak ada koleksi yang cocok dengan filter.</td></tr>';
+    }
+    function exportCSV() {
+      const rows = filteredBooks();
+      const columns = [['Barcode','kode_barcode'],['Judul Buku','judul'],['Penulis','pengarang'],['Kategori','kategori'],['Katalog','katalog'],['Nomor Rak','nomor_rak'],['Stok','stok']];
+      const csv = '\uFEFF' + [columns.map(([label]) => label), ...rows.map(b => columns.map(([,key]) => b[key] ?? ''))].map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+      link.download = 'katalog-siperpus.csv'; link.click(); URL.revokeObjectURL(link.href);
+    }
+    function printLabels() {
+      const rows = filteredBooks();
+      if (!rows.length) { byId('status').textContent = 'Tidak ada koleksi untuk dicetak.'; return; }
+      byId('print-area').innerHTML = rows.map(b => `<article class="rack-label"><div class="text-xs uppercase tracking-widest">Lokasi Koleksi</div><h2 class="mt-2 text-xl font-bold">Rak ${safe(b.nomor_rak || 'Belum ditentukan')}</h2><p class="mt-2 font-semibold">${safe(b.judul || '-')}</p><p class="mt-1 text-sm">${safe(b.katalog || b.kategori || '-')} · ${safe(b.kode_barcode || '-')}</p></article>`).join('');
+      window.print();
+    }
+    byId('search').addEventListener('input', render);
+    byId('catalog-filter').addEventListener('change', render);
+    byId('shelf-filter').addEventListener('change', render);
+    byId('refresh').addEventListener('click', loadBooks);
+    byId('export-csv').addEventListener('click', exportCSV);
+    byId('print-labels').addEventListener('click', printLabels);
+    loadBooks();
+  </script>
+</body>
+</html>
