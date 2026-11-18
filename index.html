@@ -1,1 +1,42 @@
-TEMP
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Memuat SIPERPUS...</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1e3a8a;color:#fff;font:16px Inter,Arial,sans-serif}
+    main{max-width:34rem;padding:2rem;text-align:center}
+    a{color:#1e3a8a;background:#fff;padding:.75rem 1rem;border-radius:.5rem;text-decoration:none;font-weight:700;display:inline-block;margin:.5rem}
+    p{line-height:1.6}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SIPERPUS</h1>
+    <p id="status">Memuat sistem perpustakaan...</p>
+    <a href="opac.html">Buka Katalog Publik (OPAC)</a>
+  </main>
+  <script>
+    (async function restoreApplication() {
+      const status = document.getElementById('status');
+      const previousVersion = 'https://raw.githubusercontent.com/muhammadirfan82-ops/perpus/fd020f97a651f8530cad1c7d4e36c75614655e3a/index.html';
+      try {
+        const response = await fetch(previousVersion, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        let html = await response.text();
+        const loginForm = /(<form\s+id=["']login-form["'][\s\S]*?<\/form>)/i;
+        if (!loginForm.test(html)) throw new Error('Form login versi sebelumnya tidak ditemukan.');
+        html = html.replace(loginForm, '$1\n<div class="mt-6 pt-6 border-t border-gray-200"><a href="opac.html" class="w-full flex justify-center items-center py-2.5 px-4 border border-blue-200 rounded-md shadow-sm text-sm font-bold text-gov-blue bg-blue-50 hover:bg-blue-100 transition-colors"><i class="fas fa-search mr-2"></i> Akses Katalog Publik (OPAC)</a></div>');
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        console.error('Gagal memuat aplikasi SIPERPUS:', error);
+        status.textContent = 'Aplikasi pengelola belum dapat dimuat. Katalog publik tetap tersedia melalui tombol di bawah.';
+      }
+    })();
+  </script>
+</body>
+</html>
