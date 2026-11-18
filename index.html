@@ -1,42 +1,885 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex">
-  <title>Memuat SIPERPUS...</title>
-  <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1e3a8a;color:#fff;font:16px Inter,Arial,sans-serif}
-    main{max-width:34rem;padding:2rem;text-align:center}
-    a{color:#1e3a8a;background:#fff;padding:.75rem 1rem;border-radius:.5rem;text-decoration:none;font-weight:700;display:inline-block;margin:.5rem}
-    p{line-height:1.6}
-  </style>
-</head>
-<body>
-  <main>
-    <h1>SIPERPUS</h1>
-    <p id="status">Memuat sistem perpustakaan...</p>
-    <a href="opac.html">Buka Katalog Publik (OPAC)</a>
-  </main>
-  <script>
-    (async function restoreApplication() {
-      const status = document.getElementById('status');
-      const previousVersion = 'https://raw.githubusercontent.com/muhammadirfan82-ops/perpus/fd020f97a651f8530cad1c7d4e36c75614655e3a/index.html';
-      try {
-        const response = await fetch(previousVersion, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        let html = await response.text();
-        const loginForm = /(<form\s+id=["']login-form["'][\s\S]*?<\/form>)/i;
-        if (!loginForm.test(html)) throw new Error('Form login versi sebelumnya tidak ditemukan.');
-        html = html.replace(loginForm, '$1\n<div class="mt-6 pt-6 border-t border-gray-200"><a href="opac.html" class="w-full flex justify-center items-center py-2.5 px-4 border border-blue-200 rounded-md shadow-sm text-sm font-bold text-gov-blue bg-blue-50 hover:bg-blue-100 transition-colors"><i class="fas fa-search mr-2"></i> Akses Katalog Publik (OPAC)</a></div>');
-        document.open();
-        document.write(html);
-        document.close();
-      } catch (error) {
-        console.error('Gagal memuat aplikasi SIPERPUS:', error);
-        status.textContent = 'Aplikasi pengelola belum dapat dimuat. Katalog publik tetap tersedia melalui tombol di bawah.';
+import React, { useState, useEffect } from 'react';
+import { 
+  BookOpen, LayoutDashboard, Search, Library, RefreshCcw, Users, 
+  Menu, X, Moon, Sun, Bell, Settings, Building2, UserCog, 
+  GraduationCap, BookType, Hash, Languages, FileText, BookmarkPlus, 
+  ShoppingCart, HeartHandshake, ClipboardList, UserCheck, 
+  MessageSquare, FileBarChart, LogOut, Plus, Table2, Save
+} from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+
+// ==========================================
+// 1. DATA SCHEMAS (Engine Configuration)
+// ==========================================
+// Skema ini menterjemahkan 24+ modul yang diminta menjadi data yang dapat
+// dirender secara otomatis oleh Dynamic Form Engine.
+
+const SCHEMAS = {
+  dashboard: {
+    title: 'Dashboard Statistik', icon: LayoutDashboard, isCustomView: true
+  },
+  profilPerpustakaan: {
+    title: 'Profil Perpustakaan', icon: Building2,
+    sections: [{
+      title: 'Informasi Umum',
+      fields: [
+        { label: 'Nama Perpustakaan', type: 'text' }, { label: 'Nama Sekolah', type: 'text' },
+        { label: 'NPSN', type: 'text' }, { label: 'NSS', type: 'text' },
+        { label: 'Alamat', type: 'textarea' }, { label: 'Desa', type: 'text' },
+        { label: 'Kecamatan', type: 'text' }, { label: 'Kabupaten', type: 'text' },
+        { label: 'Provinsi', type: 'text' }, { label: 'Kode Pos', type: 'text' },
+        { label: 'Nomor Telepon', type: 'text' }, { label: 'WhatsApp', type: 'text' },
+        { label: 'Email', type: 'email' }, { label: 'Website', type: 'text' },
+        { label: 'Kepala Sekolah', type: 'text' }, { label: 'Kepala Perpustakaan', type: 'text' },
+        { label: 'Tahun Berdiri', type: 'number' }, { label: 'Jam Operasional', type: 'text' },
+        { label: 'Logo', type: 'file' }, { label: 'Foto Gedung', type: 'file' }
+      ]
+    }]
+  },
+  dataPengguna: {
+    title: 'Data Pengguna', icon: UserCog,
+    sections: [{
+      title: 'Kredensial & Info Pengguna',
+      fields: [
+        { label: 'Nama Lengkap', type: 'text' }, { label: 'Username', type: 'text' },
+        { label: 'Password', type: 'password' }, { label: 'Ulangi Password', type: 'password' },
+        { label: 'Email', type: 'email' }, { label: 'Nomor HP', type: 'text' },
+        { label: 'Jabatan', type: 'text' }, 
+        { label: 'Hak Akses', type: 'select', options: ['Administrator', 'Petugas', 'Kepala Sekolah'] },
+        { label: 'Status', type: 'select', options: ['Aktif', 'Non-Aktif'] }, 
+        { label: 'Tanggal Dibuat', type: 'date' }, { label: 'Foto', type: 'file' }
+      ]
+    }]
+  },
+  dataAnggota: {
+    title: 'Data Anggota', icon: Users,
+    sections: [
+      {
+        title: 'Identitas',
+        fields: [
+          { label: 'Nomor Anggota', type: 'text' }, { label: 'Barcode', type: 'text' },
+          { label: 'QR Code', type: 'text' }, { label: 'Nama', type: 'text' },
+          { label: 'NIS', type: 'text' }, { label: 'NISN', type: 'text' },
+          { label: 'NIK', type: 'text' }, { label: 'Tempat Lahir', type: 'text' },
+          { label: 'Tanggal Lahir', type: 'date' }, { label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
+          { label: 'Agama', type: 'text' }, { label: 'Alamat', type: 'textarea' },
+          { label: 'Desa', type: 'text' }, { label: 'Kecamatan', type: 'text' },
+          { label: 'Kabupaten', type: 'text' }, { label: 'Provinsi', type: 'text' },
+          { label: 'Kode Pos', type: 'text' }, { label: 'No HP', type: 'text' },
+          { label: 'Email', type: 'email' }, { label: 'Foto', type: 'file' }
+        ]
+      },
+      {
+        title: 'Data Sekolah',
+        fields: [
+          { label: 'Jenjang', type: 'text' }, { label: 'Kelas', type: 'text' },
+          { label: 'Jurusan', type: 'text' }, { label: 'Rombel', type: 'text' },
+          { label: 'Tahun Masuk', type: 'number' }, { label: 'Tahun Lulus', type: 'number' },
+          { label: 'Status', type: 'select', options: ['Aktif', 'Alumni', 'Pindah'] }
+        ]
+      },
+      {
+        title: 'Orang Tua',
+        fields: [
+          { label: 'Nama Ayah', type: 'text' }, { label: 'Nama Ibu', type: 'text' },
+          { label: 'No HP Orang Tua', type: 'text' }, { label: 'Alamat Orang Tua', type: 'textarea' }
+        ]
       }
-    })();
-  </script>
-</body>
-</html>
+    ]
+  },
+  dataGuru: {
+    title: 'Data Guru', icon: GraduationCap,
+    sections: [{
+      title: 'Identitas Guru',
+      fields: [
+        { label: 'NIP', type: 'text' }, { label: 'Nama', type: 'text' },
+        { label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'] },
+        { label: 'Tempat Lahir', type: 'text' }, { label: 'Tanggal Lahir', type: 'date' },
+        { label: 'Alamat', type: 'textarea' }, { label: 'Nomor HP', type: 'text' },
+        { label: 'Email', type: 'email' }, { label: 'Mata Pelajaran', type: 'text' },
+        { label: 'Barcode', type: 'text' }, { label: 'QR Code', type: 'text' },
+        { label: 'Foto', type: 'file' }
+      ]
+    }]
+  },
+  dataPenerbit: {
+    title: 'Data Penerbit', icon: BookType,
+    sections: [{
+      title: 'Informasi Penerbit',
+      fields: [
+        { label: 'Nama Penerbit', type: 'text' }, { label: 'Kota', type: 'text' },
+        { label: 'Negara', type: 'text' }, { label: 'Telepon', type: 'text' },
+        { label: 'Email', type: 'email' }, { label: 'Website', type: 'text' },
+        { label: 'Kontak Person', type: 'text' }, { label: 'Logo', type: 'file' }
+      ]
+    }]
+  },
+  dataPenulis: {
+    title: 'Data Penulis', icon: FileText,
+    sections: [{
+      title: 'Informasi Penulis',
+      fields: [
+        { label: 'Nama Penulis', type: 'text' }, { label: 'Gelar Depan', type: 'text' },
+        { label: 'Gelar Belakang', type: 'text' }, { label: 'Tempat Lahir', type: 'text' },
+        { label: 'Negara', type: 'text' }, { label: 'Email', type: 'email' },
+        { label: 'Website', type: 'text' }, { label: 'Biografi', type: 'textarea' },
+        { label: 'Foto', type: 'file' }
+      ]
+    }]
+  },
+  dataKategori: {
+    title: 'Data Kategori', icon: Hash,
+    sections: [{
+      title: 'Kategori Buku',
+      fields: [
+        { label: 'Kode Kategori', type: 'text' }, { label: 'Nama Kategori', type: 'text' },
+        { label: 'Deskripsi', type: 'textarea' }, { label: 'Warna', type: 'text' },
+        { label: 'Icon', type: 'text' }
+      ]
+    }]
+  },
+  dataRak: {
+    title: 'Data Rak', icon: Table2,
+    sections: [{
+      title: 'Lokasi Rak',
+      fields: [
+        { label: 'Gedung', type: 'text' }, { label: 'Lantai', type: 'text' },
+        { label: 'Ruangan', type: 'text' }, { label: 'Rak', type: 'text' },
+        { label: 'Kolom', type: 'text' }, { label: 'Baris', type: 'text' },
+        { label: 'Keterangan', type: 'textarea' }
+      ]
+    }]
+  },
+  dataBahasa: {
+    title: 'Data Bahasa', icon: Languages,
+    sections: [{
+      title: 'Bahasa',
+      fields: [{ label: 'Kode Bahasa', type: 'text' }, { label: 'Nama Bahasa', type: 'text' }]
+    }]
+  },
+  dataBibliografi: {
+    title: 'Data Bibliografi', icon: BookOpen,
+    sections: [
+      {
+        title: 'Informasi Utama Buku',
+        fields: [
+          { label: 'ISBN', type: 'text' }, { label: 'ISSN', type: 'text' },
+          { label: 'Judul', type: 'text' }, { label: 'Sub Judul', type: 'text' },
+          { label: 'Judul Seri', type: 'text' }, { label: 'Penulis Utama', type: 'text' },
+          { label: 'Penulis Kedua', type: 'text' }, { label: 'Editor', type: 'text' },
+          { label: 'Penerjemah', type: 'text' }, { label: 'Ilustrator', type: 'text' },
+          { label: 'Penerbit', type: 'text' }, { label: 'Kota Terbit', type: 'text' },
+          { label: 'Tahun Terbit', type: 'number' }, { label: 'Cetakan', type: 'text' },
+          { label: 'Edisi', type: 'text' }, { label: 'Volume', type: 'text' },
+          { label: 'Nomor Seri', type: 'text' }, { label: 'Bahasa', type: 'text' },
+          { label: 'Status', type: 'select', options: ['Aktif', 'Draft', 'Diarsipkan'] }
+        ]
+      },
+      {
+        title: 'Spesifikasi Fisik & Konten',
+        fields: [
+          { label: 'Jumlah Halaman', type: 'number' }, { label: 'Tinggi Buku (cm)', type: 'number' },
+          { label: 'Lebar Buku (cm)', type: 'number' }, { label: 'Berat (gr)', type: 'number' },
+          { label: 'Sinopsis', type: 'textarea' }, { label: 'Daftar Isi', type: 'textarea' },
+          { label: 'Abstrak', type: 'textarea' }, { label: 'Kata Kunci', type: 'text' }
+        ]
+      },
+      {
+        title: 'Media & Lampiran',
+        fields: [
+          { label: 'Cover Buku', type: 'file' }, { label: 'Lampiran PDF', type: 'file' },
+          { label: 'Audio Book', type: 'file' }, { label: 'Video', type: 'file' }
+        ]
+      }
+    ]
+  },
+  dataDDC: {
+    title: 'Klasifikasi DDC', icon: Hash,
+    sections: [{
+      title: 'Data DDC',
+      fields: [
+        { label: 'Nomor DDC', type: 'text' }, { label: 'Nomor Panggil', type: 'text' },
+        { label: 'Subject Heading', type: 'text' }, { label: 'Kategori', type: 'text' },
+        { label: 'Kata Kunci', type: 'text' }, { label: 'Lokasi Rak', type: 'text' }
+      ]
+    }]
+  },
+  dataEksemplar: {
+    title: 'Data Eksemplar', icon: BookType,
+    sections: [{
+      title: 'Inventaris Eksemplar',
+      fields: [
+        { label: 'Nomor Induk Buku', type: 'text' }, { label: 'Barcode', type: 'text' },
+        { label: 'QR Code', type: 'text' }, { label: 'RFID', type: 'text' },
+        { label: 'Nomor Inventaris', type: 'text' }, { label: 'Tanggal Masuk', type: 'date' },
+        { label: 'Harga', type: 'number' }, { label: 'Sumber Dana', type: 'text' },
+        { label: 'Kondisi', type: 'select', options: ['Baik', 'Rusak Ringan', 'Rusak Berat', 'Hilang'] },
+        { label: 'Status', type: 'select', options: ['Tersedia', 'Dipinjam', 'Diperbaiki'] },
+        { label: 'Lokasi Rak', type: 'text' }, { label: 'Foto Buku', type: 'file' }
+      ]
+    }]
+  },
+  peminjaman: {
+    title: 'Peminjaman', icon: RefreshCcw,
+    sections: [{
+      title: 'Transaksi Peminjaman',
+      fields: [
+        { label: 'Nomor Transaksi', type: 'text' }, { label: 'Tanggal Pinjam', type: 'date' },
+        { label: 'Anggota', type: 'text' }, { label: 'Barcode Anggota', type: 'text' },
+        { label: 'Buku', type: 'text' }, { label: 'Barcode Buku', type: 'text' },
+        { label: 'Jumlah Buku', type: 'number' }, { label: 'Tanggal Kembali (Batas)', type: 'date' },
+        { label: 'Petugas', type: 'text' }, { label: 'Catatan', type: 'textarea' }
+      ]
+    }]
+  },
+  pengembalian: {
+    title: 'Pengembalian', icon: RefreshCcw,
+    sections: [{
+      title: 'Transaksi Pengembalian',
+      fields: [
+        { label: 'Nomor Transaksi', type: 'text' }, { label: 'Tanggal Kembali (Aktual)', type: 'date' },
+        { label: 'Kondisi Buku', type: 'select', options: ['Baik', 'Rusak', 'Hilang'] },
+        { label: 'Terlambat (Hari)', type: 'number' }, { label: 'Denda (Rp)', type: 'number' },
+        { label: 'Petugas', type: 'text' }, { label: 'Catatan', type: 'textarea' }
+      ]
+    }]
+  },
+  denda: {
+    title: 'Data Denda', icon: ClipboardList,
+    sections: [{
+      title: 'Penyelesaian Denda',
+      fields: [
+        { label: 'Nomor Denda', type: 'text' }, { label: 'Anggota', type: 'text' },
+        { label: 'Buku', type: 'text' }, { label: 'Jenis Denda', type: 'select', options: ['Keterlambatan', 'Kerusakan', 'Kehilangan'] },
+        { label: 'Nominal', type: 'number' }, { label: 'Status Pembayaran', type: 'select', options: ['Belum Lunas', 'Lunas'] },
+        { label: 'Metode Pembayaran', type: 'text' }, { label: 'Bukti Pembayaran', type: 'file' }
+      ]
+    }]
+  },
+  pengadaanBuku: {
+    title: 'Pengadaan Buku', icon: ShoppingCart,
+    sections: [{
+      title: 'Data Pengadaan',
+      fields: [
+        { label: 'Nomor Pengadaan', type: 'text' }, { label: 'Tanggal', type: 'date' },
+        { label: 'Supplier', type: 'text' }, { label: 'Judul Buku', type: 'text' },
+        { label: 'Jumlah', type: 'number' }, { label: 'Harga Satuan', type: 'number' },
+        { label: 'Total', type: 'number' }, { label: 'Sumber Dana', type: 'text' },
+        { label: 'Status', type: 'select', options: ['Diusulkan', 'Disetujui', 'Dipesan', 'Diterima'] }
+      ]
+    }]
+  },
+  donasiBuku: {
+    title: 'Donasi Buku', icon: HeartHandshake,
+    sections: [{
+      title: 'Data Donatur & Buku',
+      fields: [
+        { label: 'Nomor Donasi', type: 'text' }, { label: 'Nama Donatur', type: 'text' },
+        { label: 'Alamat', type: 'textarea' }, { label: 'Nomor HP', type: 'text' },
+        { label: 'Judul Buku', type: 'text' }, { label: 'Jumlah Buku', type: 'number' },
+        { label: 'Kondisi', type: 'text' }, { label: 'Tanggal Donasi', type: 'date' }
+      ]
+    }]
+  },
+  stockOpname: {
+    title: 'Stock Opname', icon: ClipboardList,
+    sections: [{
+      title: 'Pengecekan Stok',
+      fields: [
+        { label: 'Nomor Stock Opname', type: 'text' }, { label: 'Tanggal', type: 'date' },
+        { label: 'Rak', type: 'text' }, { label: 'Buku', type: 'text' },
+        { label: 'Barcode', type: 'text' }, { label: 'Status Sistem', type: 'text' },
+        { label: 'Kondisi Aktual', type: 'select', options: ['Ada', 'Hilang', 'Rusak'] },
+        { label: 'Petugas', type: 'text' }, { label: 'Catatan', type: 'textarea' }
+      ]
+    }]
+  },
+  pengunjung: {
+    title: 'Data Pengunjung', icon: UserCheck,
+    sections: [{
+      title: 'Buku Tamu Digital',
+      fields: [
+        { label: 'Nomor Pengunjung', type: 'text' }, { label: 'Nama', type: 'text' },
+        { label: 'Nomor Anggota', type: 'text' }, { label: 'Kelas/Instansi', type: 'text' },
+        { label: 'Tujuan', type: 'text' }, { label: 'Jam Masuk', type: 'time' },
+        { label: 'Jam Keluar', type: 'time' }, { label: 'Keterangan', type: 'textarea' }
+      ]
+    }]
+  },
+  bukuDigital: {
+    title: 'Buku Digital', icon: Library,
+    sections: [{
+      title: 'Manajemen E-Library',
+      fields: [
+        { label: 'Judul', type: 'text' }, { label: 'Penulis', type: 'text' },
+        { label: 'Penerbit', type: 'text' }, { label: 'Tahun', type: 'number' },
+        { label: 'Ukuran File', type: 'text' }, { label: 'Hak Akses', type: 'select', options: ['Publik', 'Anggota Saja', 'Premium'] },
+        { label: 'Status Publikasi', type: 'select', options: ['Draft', 'Terbit'] },
+        { label: 'Cover', type: 'file' }, { label: 'File PDF', type: 'file' },
+        { label: 'File EPUB', type: 'file' }, { label: 'Audio', type: 'file' },
+        { label: 'Video', type: 'file' }
+      ]
+    }]
+  },
+  reservasiBuku: {
+    title: 'Reservasi Buku', icon: BookmarkPlus,
+    sections: [{
+      title: 'Booking Buku',
+      fields: [
+        { label: 'Nomor Reservasi', type: 'text' }, { label: 'Anggota', type: 'text' },
+        { label: 'Buku', type: 'text' }, { label: 'Tanggal Reservasi', type: 'date' },
+        { label: 'Batas Pengambilan', type: 'date' }, { label: 'Status', type: 'select', options: ['Menunggu', 'Diambil', 'Batal', 'Kadaluarsa'] }
+      ]
+    }]
+  },
+  usulanBuku: {
+    title: 'Usulan Buku', icon: MessageSquare,
+    sections: [{
+      title: 'Usulan Koleksi Baru',
+      fields: [
+        { label: 'Pengusul', type: 'text' }, { label: 'Judul Buku', type: 'text' },
+        { label: 'Penulis', type: 'text' }, { label: 'Penerbit', type: 'text' },
+        { label: 'Tahun', type: 'number' }, { label: 'Alasan Usulan', type: 'textarea' },
+        { label: 'Prioritas', type: 'select', options: ['Rendah', 'Sedang', 'Tinggi'] },
+        { label: 'Status Persetujuan', type: 'select', options: ['Ditinjau', 'Disetujui', 'Ditolak'] }
+      ]
+    }]
+  },
+  notifikasi: {
+    title: 'Notifikasi', icon: Bell,
+    sections: [{
+      title: 'Kirim Pemberitahuan',
+      fields: [
+        { label: 'Judul', type: 'text' }, { label: 'Isi Pesan', type: 'textarea' },
+        { label: 'Jenis Notifikasi', type: 'select', options: ['Email', 'WhatsApp', 'Sistem'] },
+        { label: 'Tujuan (Grup/Individu)', type: 'text' }, { label: 'Tanggal Kirim', type: 'date' },
+        { label: 'Status', type: 'select', options: ['Draft', 'Terkirim', 'Gagal'] }
+      ]
+    }]
+  },
+  laporan: {
+    title: 'Generator Laporan', icon: FileBarChart,
+    sections: [{
+      title: 'Parameter Laporan',
+      fields: [
+        { label: 'Periode Awal', type: 'date' }, { label: 'Periode Akhir', type: 'date' },
+        { label: 'Jenis Laporan', type: 'select', options: ['Laporan Peminjaman', 'Laporan Anggota', 'Laporan Pengunjung', 'Laporan Denda', 'Laporan Pengadaan', 'Laporan Inventaris'] },
+        { label: 'Filter Kelas', type: 'text' }, { label: 'Filter Jurusan', type: 'text' },
+        { label: 'Filter Rak', type: 'text' }, { label: 'Filter Kategori', type: 'text' },
+        { label: 'Format Output', type: 'select', options: ['PDF', 'Excel', 'Word'] }
+      ]
+    }]
+  }
+};
+
+const SIDEBAR_GROUPS = [
+  {
+    name: 'Menu Utama',
+    items: ['dashboard']
+  },
+  {
+    name: 'Pengaturan',
+    items: ['profilPerpustakaan']
+  },
+  {
+    name: 'Master Data',
+    items: ['dataPengguna', 'dataAnggota', 'dataGuru', 'dataPenerbit', 'dataPenulis', 'dataKategori', 'dataRak', 'dataBahasa']
+  },
+  {
+    name: 'Katalog & Koleksi',
+    items: ['dataBibliografi', 'dataDDC', 'dataEksemplar', 'bukuDigital']
+  },
+  {
+    name: 'Sirkulasi',
+    items: ['peminjaman', 'pengembalian', 'denda', 'reservasiBuku']
+  },
+  {
+    name: 'Inventaris',
+    items: ['pengadaanBuku', 'donasiBuku', 'stockOpname']
+  },
+  {
+    name: 'Layanan',
+    items: ['pengunjung', 'usulanBuku', 'notifikasi']
+  },
+  {
+    name: 'Laporan',
+    items: ['laporan']
+  }
+];
+
+// ==========================================
+// 2. COMPONENTS
+// ==========================================
+
+const Dashboard = () => {
+  const statCards = [
+    { title: 'Total Koleksi', value: '15.420', bg: 'bg-blue-600', icon: BookOpen },
+    { title: 'Buku Dipinjam', value: '342', bg: 'bg-green-600', icon: RefreshCcw },
+    { title: 'Anggota Aktif', value: '1.205', bg: 'bg-yellow-500', icon: Users },
+    { title: 'Pengunjung (Hari Ini)', value: '128', bg: 'bg-red-600', icon: UserCheck },
+  ];
+
+  const chartData = [
+    { name: 'Senin', Peminjaman: 45, Kunjungan: 120 },
+    { name: 'Selasa', Peminjaman: 52, Kunjungan: 132 },
+    { name: 'Rabu', Peminjaman: 38, Kunjungan: 101 },
+    { name: 'Kamis', Peminjaman: 65, Kunjungan: 150 },
+    { name: 'Jumat', Peminjaman: 48, Kunjungan: 140 },
+    { name: 'Sabtu', Peminjaman: 80, Kunjungan: 210 },
+  ];
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Bootstrap Style Widget Boxes */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat, idx) => (
+          <div key={idx} className={`${stat.bg} rounded-sm shadow-sm p-4 text-white flex justify-between items-center relative overflow-hidden`}>
+            <div className="z-10">
+              <h3 className="text-3xl font-bold mb-1">{stat.value}</h3>
+              <p className="text-sm opacity-90">{stat.title}</p>
+            </div>
+            <stat.icon size={64} className="absolute -right-4 -bottom-4 opacity-20 z-0" />
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Box */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white shadow-sm border-t-4 border-blue-600 rounded-sm">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-800">Statistik Peminjaman (Minggu Ini)</h3>
+          </div>
+          <div className="p-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <RechartsTooltip cursor={{fill: 'transparent'}} />
+                <Bar dataKey="Peminjaman" fill="#007bff" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="bg-white shadow-sm border-t-4 border-green-600 rounded-sm">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-800">Kunjungan Perpustakaan</h3>
+          </div>
+          <div className="p-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                <YAxis axisLine={false} tickLine={false} />
+                <RechartsTooltip />
+                <Line type="monotone" dataKey="Kunjungan" stroke="#28a745" strokeWidth={3} dot={{r: 4}} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LoginForm = ({ onLogin }) => {
+  return (
+    <div className="min-h-screen bg-gray-200 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 shadow-md border-t-4 border-blue-800 rounded-sm overflow-hidden">
+        <div className="p-6 text-center border-b border-gray-100 dark:border-gray-700">
+          <BookOpen className="mx-auto h-12 w-12 text-blue-800 dark:text-blue-500 mb-2" />
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white uppercase tracking-wider">SIPERPUS</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Sistem Informasi Perpustakaan</p>
+        </div>
+        <div className="p-6 bg-gray-50 dark:bg-gray-800">
+          <p className="text-center mb-4 text-sm text-gray-600 dark:text-gray-400">Silakan login untuk memulai sesi Anda</p>
+          <form onSubmit={(e) => { e.preventDefault(); onLogin(); }} className="space-y-4">
+            <div>
+              <input type="text" required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-white outline-none" placeholder="Username" />
+            </div>
+            <div>
+              <input type="password" required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-white outline-none" placeholder="Password" />
+            </div>
+            <div>
+              <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white outline-none">
+                <option>Administrator</option>
+                <option>Petugas Sirkulasi</option>
+                <option>Kepala Perpustakaan</option>
+              </select>
+            </div>
+            <div className="flex space-x-2">
+              <div className="bg-gray-200 dark:bg-gray-900 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 font-bold tracking-widest rounded-sm select-none flex items-center justify-center w-1/3">
+                 X7B9Q
+              </div>
+              <input type="text" required placeholder="Captcha" className="w-2/3 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-sm focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-white outline-none" />
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center space-x-2">
+                <input type="checkbox" id="remember" className="rounded-sm text-blue-600 border-gray-300 h-4 w-4" />
+                <label htmlFor="remember" className="text-sm text-gray-700 dark:text-gray-300">Remember Me</label>
+              </div>
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-sm transition-colors shadow-sm">
+                Masuk
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DynamicDataView = ({ schema, moduleKey, data = [], onSave, onDelete, onDeleteAll }) => {
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'form'
+  const [formData, setFormData] = useState({});
+  const [editingId, setEditingId] = useState(null);
+
+  const handleInputChange = (label, value) => {
+    setFormData(prev => ({ ...prev, [label]: value }));
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    onSave(moduleKey, formData, editingId);
+    setViewMode('list');
+    setFormData({});
+    setEditingId(null);
+  };
+
+  const handleAddNew = () => {
+    setFormData({});
+    setEditingId(null);
+    setViewMode('form');
+  };
+
+  const handleEdit = (row) => {
+    setFormData(row);
+    setEditingId(row.id);
+    setViewMode('form');
+  };
+
+  const renderInput = (field, idx) => {
+    const baseClasses = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-sm focus:border-blue-500 focus:ring-0 bg-white dark:bg-gray-800 dark:text-white text-sm outline-none transition-colors";
+    
+    let inputEl;
+    const value = formData[field.label] || '';
+    const onChange = (e) => handleInputChange(field.label, e.target.value);
+
+    switch(field.type) {
+      case 'textarea':
+        inputEl = <textarea rows="3" className={baseClasses} placeholder={`Masukkan ${field.label}...`} value={value} onChange={onChange} />;
+        break;
+      case 'select':
+        inputEl = (
+          <select className={baseClasses} value={value} onChange={onChange}>
+            <option value="">-- Pilih --</option>
+            {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        );
+        break;
+      case 'file':
+        inputEl = <input type="file" className="block w-full text-sm text-gray-500 border border-gray-300 rounded-sm file:mr-4 file:py-2 file:px-4 file:border-0 file:border-r file:border-gray-300 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" />;
+        break;
+      default:
+        inputEl = <input type={field.type || 'text'} className={baseClasses} placeholder={`Masukkan ${field.label}...`} value={value} onChange={onChange} />;
+    }
+
+    return (
+      <div key={idx} className={`space-y-1 ${field.type === 'textarea' ? 'col-span-1 md:col-span-2' : ''}`}>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {field.label} {field.required && <span className="text-red-500">*</span>}
+        </label>
+        {inputEl}
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow-sm border-t-4 border-blue-600 rounded-sm overflow-hidden animate-in fade-in duration-300 flex flex-col h-[calc(100vh-8rem)]">
+      {/* Header Classic AdminLTE Box */}
+      <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <div className="flex items-center space-x-2">
+          <schema.icon size={20} className="text-gray-600 dark:text-gray-400" />
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wide">{schema.title}</h2>
+        </div>
+        
+        <div className="flex space-x-1">
+          <button 
+            onClick={() => setViewMode('list')}
+            className={`px-3 py-1.5 rounded-sm text-sm transition-colors flex items-center space-x-1 ${viewMode === 'list' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'}`}
+          >
+            <Table2 size={16} /> <span className="hidden sm:inline">Tabel Data</span>
+          </button>
+          <button 
+            onClick={handleAddNew}
+            className={`px-3 py-1.5 rounded-sm text-sm transition-colors flex items-center space-x-1 ${viewMode === 'form' ? 'bg-blue-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white shadow-sm'}`}
+          >
+            <Plus size={16} /> <span className="hidden sm:inline">Tambah Baru</span>
+          </button>
+          <button 
+            onClick={() => onDeleteAll(moduleKey)}
+            className={`px-3 py-1.5 rounded-sm text-sm transition-colors flex items-center space-x-1 bg-red-500 hover:bg-red-600 text-white shadow-sm`}
+          >
+            <X size={16} /> <span className="hidden sm:inline">Hapus Semua</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto p-0 sm:p-4 bg-white dark:bg-gray-800">
+        {viewMode === 'list' ? (
+          <div className="overflow-x-auto">
+            {/* Siperpus / Bootstrap Striped Table Mockup */}
+            <table className="min-w-full text-left text-sm border-collapse">
+              <thead className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                <tr>
+                  <th className="p-3 border border-gray-300 dark:border-gray-600 w-12 text-center">No</th>
+                  {schema.sections[0].fields.slice(0, 4).map((f, i) => (
+                    <th key={i} className="p-3 border border-gray-300 dark:border-gray-600">{f.label}</th>
+                  ))}
+                  <th className="p-3 border border-gray-300 dark:border-gray-600 text-center w-32">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan={schema.sections[0].fields.slice(0, 4).length + 2} className="p-6 text-center text-gray-500 dark:text-gray-400">
+                      Belum ada data. Silakan klik "Tambah Baru" untuk memasukkan data.
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((row, rIdx) => (
+                    <tr key={row.id} className={rIdx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-center">{rIdx + 1}</td>
+                      {schema.sections[0].fields.slice(0, 4).map((f, i) => (
+                        <td key={i} className="p-3 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 truncate max-w-[150px]">
+                          {row[f.label] || '-'}
+                        </td>
+                      ))}
+                      <td className="p-3 border border-gray-200 dark:border-gray-700 text-center">
+                        <button onClick={() => handleEdit(row)} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded-sm text-xs mr-1 shadow-sm"><Settings size={14}/></button>
+                        <button onClick={() => onDelete(moduleKey, row.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-sm text-xs shadow-sm"><X size={14}/></button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            <div className="flex justify-between items-center p-3 text-sm text-gray-600 dark:text-gray-400">
+               <span>Menampilkan total {data.length} entri</span>
+               <div className="flex space-x-1">
+                  <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-sm">Sebelumnya</button>
+                  <button className="px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-sm">Selanjutnya</button>
+               </div>
+            </div>
+          </div>
+        ) : (
+          <form className="max-w-4xl mx-auto" onSubmit={handleFormSubmit}>
+            {schema.sections.map((section, sIdx) => (
+              <div key={sIdx} className="mb-6 border border-gray-200 dark:border-gray-700 rounded-sm">
+                <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">{section.title}</h3>
+                </div>
+                <div className="p-4 bg-white dark:bg-gray-800">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {section.fields.map((field, fIdx) => renderInput(field, fIdx))}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            <div className="flex justify-end space-x-2 border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+              <button type="button" onClick={() => setViewMode('list')} className="px-4 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-sm text-sm font-medium transition-colors">
+                Batal
+              </button>
+              <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm flex items-center space-x-2 text-sm font-medium transition-colors shadow-sm">
+                <Save size={16} /> <span>Simpan Data</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
+// ==========================================
+// 3. MAIN APP
+// ==========================================
+
+export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeModuleId, setActiveModuleId] = useState('dashboard');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState('light');
+  const [globalData, setGlobalData] = useState({});
+
+  useEffect(() => {
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [theme]);
+
+  if (!isAuthenticated) {
+    return <LoginForm onLogin={() => setIsAuthenticated(true)} />;
+  }
+
+  const handleSaveData = (moduleKey, formData, id) => {
+    setGlobalData(prev => {
+      const currentList = prev[moduleKey] || [];
+      if (id) {
+        return {
+          ...prev,
+          [moduleKey]: currentList.map(item => item.id === id ? { ...formData, id } : item)
+        };
+      }
+      return {
+        ...prev,
+        [moduleKey]: [...currentList, { ...formData, id: Date.now().toString() }]
+      };
+    });
+  };
+
+  const handleDeleteData = (moduleKey, id) => {
+    setGlobalData(prev => ({
+      ...prev,
+      [moduleKey]: (prev[moduleKey] || []).filter(item => item.id !== id)
+    }));
+  };
+
+  const handleDeleteAll = (moduleKey) => {
+    setGlobalData(prev => ({
+      ...prev,
+      [moduleKey]: []
+    }));
+  };
+
+  const activeSchema = SCHEMAS[activeModuleId];
+
+  return (
+    <div className="min-h-screen bg-[#f4f6f9] dark:bg-gray-900 flex text-gray-800 dark:text-gray-200 font-sans transition-colors duration-200">
+      
+      {/* Sidebar Overlay (Mobile) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Sidebar - AdminLTE Dark Theme */}
+      <aside className={`fixed top-0 left-0 z-50 h-screen w-64 bg-[#343a40] transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col shadow-xl`}>
+        {/* Brand Logo */}
+        <div className="h-14 flex items-center px-4 border-b border-[#4b545c] bg-[#343a40]">
+          <BookOpen size={24} className="text-blue-400 mr-3" />
+          <span className="text-xl font-light text-white tracking-wide">SIPERPUS <span className="font-bold">PRO</span></span>
+        </div>
+
+        {/* User Panel */}
+        <div className="px-4 py-4 border-b border-[#4b545c] flex items-center space-x-3">
+           <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold border-2 border-[#4b545c]">
+             AD
+           </div>
+           <div>
+             <p className="text-gray-200 text-sm font-semibold">Administrator</p>
+             <p className="text-green-400 text-xs flex items-center"><span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span> Online</p>
+           </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 space-y-1 custom-scrollbar">
+          {SIDEBAR_GROUPS.map((group, gIdx) => (
+            <div key={gIdx} className="mb-2">
+              <h4 className="px-4 py-2 text-[11px] font-bold text-[#c2c7d0] uppercase tracking-wider">
+                {group.name}
+              </h4>
+              <ul className="space-y-1">
+                {group.items.map(itemId => {
+                  const schema = SCHEMAS[itemId];
+                  if(!schema) return null;
+                  const Icon = schema.icon;
+                  const isActive = activeModuleId === itemId;
+                  return (
+                    <li key={itemId} className="px-2">
+                      <button
+                        onClick={() => { setActiveModuleId(itemId); setIsMobileMenuOpen(false); }}
+                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-sm transition-colors text-sm ${
+                          isActive 
+                            ? 'bg-[#007bff] text-white shadow-md' 
+                            : 'text-[#c2c7d0] hover:bg-[#494e53] hover:text-white'
+                        }`}
+                      >
+                        <Icon size={18} className={isActive ? 'text-white' : 'text-[#c2c7d0]'} />
+                        <span className="truncate">{schema.title}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen h-screen overflow-hidden">
+        {/* Top Navbar */}
+        <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 flex-shrink-0 shadow-sm z-10">
+          <div className="flex items-center">
+            <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white lg:hidden mr-4" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <button className="text-gray-500 hover:text-gray-700 hidden lg:block mr-4">
+               <Menu size={20} />
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button className="text-gray-500 hover:text-gray-700 dark:text-gray-400 relative">
+              <Bell size={20} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">3</span>
+            </button>
+            <button 
+              onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
+            >
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <button onClick={() => setIsAuthenticated(false)} className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-red-600 dark:text-gray-300 transition-colors">
+              <LogOut size={18} /> <span className="hidden sm:inline">Keluar</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Content Wrapper */}
+        <div className="flex-1 p-4 sm:p-6 overflow-hidden">
+           <div className="mb-4 flex items-center justify-between">
+              <h1 className="text-2xl font-normal text-gray-800 dark:text-gray-100">{activeSchema?.title}</h1>
+              <span className="text-sm text-gray-500">Beranda / {activeSchema?.title}</span>
+           </div>
+
+          {activeModuleId === 'dashboard' ? (
+             <Dashboard />
+          ) : activeSchema ? (
+            <DynamicDataView 
+              schema={activeSchema} 
+              moduleKey={activeModuleId}
+              data={globalData[activeModuleId] || []}
+              onSave={handleSaveData}
+              onDelete={handleDeleteData}
+              onDeleteAll={handleDeleteAll}
+              key={activeModuleId} 
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">Pilih modul dari sidebar</div>
+          )}
+        </div>
+      </main>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b545c; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #6c757d; }
+      `}} />
+    </div>
+  );
+}
